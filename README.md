@@ -12,7 +12,7 @@ Aims:
 
 ## Running
 
-docker run -it -p 8000:8000 python-dev
+`docker run -it -p 8000:8000 python-dev`
 
 Or start it via Docker/VS Code.
 
