@@ -1,44 +1,39 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
+# System deps for building wheels and Python packages
+RUN apt-get update && apt-get install -y \
+    python3-venv python3-pip build-essential rustc cargo git curl nano && \
+    rm -rf /var/lib/apt/lists/*
+
+# Paths and working dir
 ENV PATH="/home/devuser/.local/bin:$PATH"
 WORKDIR /usr/src
 
-COPY python_requirements.txt /usr/requirements/python_requirements.txt
-
-# System deps (build tools, Rust for pydantic-core/orjson)
-RUN apt-get update && apt-get install -y \
-    git nano curl build-essential rustc cargo && \
-    rm -rf /var/lib/apt/lists/*
-
-# Create directories before chown
-RUN mkdir -p /usr/packages /usr/src/test_project && \
-    useradd -ms /bin/bash devuser && \
-    chown -R devuser:devuser /usr/src /usr/packages
+# Create user and directories
+RUN useradd -ms /bin/bash devuser && \
+    mkdir -p /usr/packages /usr/src/fastapi-starter /usr/requirements && \
+    chown -R devuser:devuser /usr/src /usr/packages /usr/requirements
 
 USER devuser
-WORKDIR /usr/src
+WORKDIR /usr/src/fastapi-starter
 
-# Base tools installed for devuser
-RUN python -m pip install --user --upgrade pip setuptools wheel pipx maturin \
-    && python -m pipx ensurepath \
-    && pipx install uv
+# Copy requirements file
+COPY python_requirements.txt /usr/requirements/python_requirements.txt
 
-# Build and cache wheels (ensures maturin/puccinialin dependencies resolved)
-RUN mkdir -p /usr/packages && \
-    python -m pip wheel --no-cache-dir --wheel-dir /usr/packages -r /usr/requirements/python_requirements.txt
+# Install pipx and uv
+RUN python -m pip install --user --upgrade pip setuptools wheel pipx && \
+    python -m pipx ensurepath && \
+    pipx install uv
 
-# Create test project and install from local cache
-RUN cd /usr/src/test_project && \
-    uv init && \
-    uv venv && \
-    ./.venv/bin/python -m ensurepip && \
+# Initialize uv project and venv
+RUN uv init && \
+    uv venv --clear && \
+    ./.venv/bin/python -m ensurepip --upgrade && \
     ./.venv/bin/python -m pip install --upgrade pip setuptools wheel && \
-    ./.venv/bin/python -m pip install --no-index --find-links=/usr/packages -r /usr/requirements/python_requirements.txt
+    uv add -r /usr/requirements/python_requirements.txt && \
+    uv sync
 
-# Ensure PATH in bash for devuser
-SHELL ["/bin/bash", "-c"]
-ENV PATH="/home/devuser/.local/bin:/usr/src/test_project/.venv/bin:$PATH"
-
+# Expose FastAPI port
 EXPOSE 8000
-WORKDIR /usr/src
+WORKDIR /usr/src/fastapi-starter
 CMD ["bash"]
