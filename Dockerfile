@@ -7,18 +7,21 @@ RUN apt-get update && apt-get install -y \
 
 # Paths and working dir
 ENV PATH="/home/devuser/.local/bin:$PATH"
-WORKDIR /usr/src
+WORKDIR /usr/templates
 
 # Create user and directories
 RUN useradd -ms /bin/bash devuser && \
-    mkdir -p /usr/packages /usr/src/fastapi-starter /usr/requirements && \
+    mkdir -p /usr/packages /usr/templates/fastapi-starter /usr/requirements && \
     chown -R devuser:devuser /usr/src /usr/packages /usr/requirements
 
-USER devuser
-WORKDIR /usr/src/fastapi-starter
+COPY fastapi-starter /usr/templates/fastapi-starter
 
-# Copy requirements file
-COPY python_requirements.txt /usr/requirements/python_requirements.txt
+USER root
+RUN chown -R devuser:devuser /usr/templates
+RUN chown -R devuser:devuser /usr/src
+USER devuser
+
+WORKDIR /usr/templates/fastapi-starter
 
 # Install pipx and uv
 RUN python -m pip install --user --upgrade pip setuptools wheel pipx && \
@@ -26,14 +29,12 @@ RUN python -m pip install --user --upgrade pip setuptools wheel pipx && \
     pipx install uv
 
 # Initialize uv project and venv
-RUN uv init && \
-    uv venv --clear && \
+RUN uv venv --clear && \
     ./.venv/bin/python -m ensurepip --upgrade && \
     ./.venv/bin/python -m pip install --upgrade pip setuptools wheel && \
-    uv add -r /usr/requirements/python_requirements.txt && \
     uv sync
 
 # Expose FastAPI port
 EXPOSE 8000
-WORKDIR /usr/src/fastapi-starter
+WORKDIR /usr/src
 CMD ["bash"]
