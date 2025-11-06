@@ -36,5 +36,6 @@ RUN uv venv --clear && \
 
 # Expose FastAPI port
 EXPOSE 8000
+EXPOSE 5678
 WORKDIR /usr/src
 CMD ["bash"]
