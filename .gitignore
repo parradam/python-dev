@@ -1,0 +1,13 @@
+# Build artifacts
+*.tar
+
+# Log files
+*.log
+
+# Text files
+*.txt
+
+# Docker volumes and data
+pydev.tar
+
+/build-logs

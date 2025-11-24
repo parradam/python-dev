@@ -38,4 +38,6 @@ RUN uv venv --clear && \
 EXPOSE 8000
 EXPOSE 5678
 WORKDIR /usr/src
+
+# Specify the command to run the application
 CMD ["bash"]

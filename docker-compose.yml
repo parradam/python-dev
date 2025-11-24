@@ -1,8 +1,14 @@
 services:
-  dev:
+  python-dev-log:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: python-dev-log:latest   # <-- added this line
     ports:
-      - "8000:8000"
-      - "5678:5678"
+      - "8001:8000"
+      - "6789:5678"
     volumes:
       - "C:/src:/usr/src"
     tty: true
+    stdin_open: true
+    
