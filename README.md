@@ -8,6 +8,10 @@ Aims:
 
 ## Building
 
+Win11: 
+`. ./build.ps1`
+
+Linux:
 `docker build -t python-dev .`
 
 ## Running
